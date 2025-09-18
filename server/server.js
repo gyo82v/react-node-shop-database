@@ -25,6 +25,8 @@ function serveResponse(res, statusCode, contentType, payload) {
   }
 }
 
+
+
 // Initialize DB and schema
 async function initDb() {
   // ensure directory exists
@@ -69,6 +71,8 @@ async function initDb() {
 
 const dbPromise = initDb();
 
+
+
 const server = http.createServer(async (req, res) => {
   // CORS for local development
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -83,9 +87,16 @@ const server = http.createServer(async (req, res) => {
 
   // wait for DB ready
   const db = await dbPromise;
-
+  
+  if (req.url === "/" && req.method === "GET"){
+    try {
+      serveResponse(res, 200,"text/plain", "server responded")
+    } catch (err) {
+      console.error("There was an error fetching data on / get", err)
+    }
+  }
   // GET / => return all stock items
-  if (req.url === "/" && req.method === "GET") {
+  if (req.url === "/stock" && req.method === "GET") {
     try {
       const result = await db.query("SELECT * FROM stock ORDER BY id DESC;");
       console.log("result: ", result)
