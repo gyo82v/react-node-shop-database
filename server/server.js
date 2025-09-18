@@ -88,6 +88,7 @@ const server = http.createServer(async (req, res) => {
   if (req.url === "/" && req.method === "GET") {
     try {
       const result = await db.query("SELECT * FROM stock ORDER BY id DESC;");
+      console.log("result: ", result)
       serveResponse(res, 200, "application/json", { rows: result.rows });
     } catch (err) {
       console.error("DB error on GET /:", err);
