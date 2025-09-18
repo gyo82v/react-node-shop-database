@@ -22,7 +22,7 @@
 
   /* Apply custom styles to html, body, and the root element */
   html, body, #root {
-    @apply min-h-screen m-0 p-0;
+    @apply min-h-screen m-0 p-0 bg-slate-50;
     line-height: 1.5;
     font-weight: 400;
     scroll-behavior: smooth;
