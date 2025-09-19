@@ -15,9 +15,35 @@ export default function Home(){
         setFormdata(f => ({...f , [name] : value}))
     }
 
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
         e.preventDefault()
-        console.log("submit: ",formdata)
+        
+        const qty = Number(formdata.qty)
+        const price = Number(formdata.price)
+        if(!formdata.name.trim()) {console.log("Name is required"); return}
+        if(!formdata.category.trim()) {console.log("Category is required"); return}
+        if(!Number.isFinite(qty) && qty < 0) {console.log("Qty must be a positive number"); return}
+        if(!Number.isFinite(price) && price <= 0) {console.log("Price must be a positive number"); return}
+
+        const payload = {
+            name : formdata.name,
+            category : formdata.category,
+            qty,
+            price,
+            available : formdata.available
+        }
+
+        try {
+            const res = await fetch("http://localhost:8000/", {
+                method : "POST",
+                headers : {"Content-Type": "application/json"},
+                body : JSON.stringify(payload)
+            })
+            if(!res.ok) throw new Error("respose error POST")
+            setFormdata({name : "", category : "", qty : "", price : "", available : true})
+        } catch (err) {
+            console.error("there was an error POST /", err)
+        }
     }
     return(
         <section className={container}>
