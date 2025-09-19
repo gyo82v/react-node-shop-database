@@ -17,7 +17,7 @@ export default function Home(){
 
     const handleSubmit = e => {
         e.preventDefault()
-        console.log(formdata)
+        console.log("submit: ",formdata)
     }
     return(
         <section className={container}>
