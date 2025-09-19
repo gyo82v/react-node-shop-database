@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import FormEl from "../components/FormEl"
 
 export default function Home(){
     const [formdata, setFormdata] = useState({name : "", category : "", qty : "", price : "", available : true})
-
-    const container = `p-4 flex flex-col items-center`
 
     const handleChange = e => {
         const {name, value, type} = e.target 
@@ -46,7 +44,7 @@ export default function Home(){
         }
     }
     return(
-        <section className={container}>
+        <section className="p-4 flex flex-col items-center">
             <FormEl data={formdata} handleChange={handleChange} handleSubmit={handleSubmit} />
         </section>
     )

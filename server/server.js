@@ -4,6 +4,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
+import { serveResponse } from "./utils.js";
 
 const PORT = 8000;
 
@@ -14,19 +15,6 @@ const __dirname = path.dirname(__filename);
 // directory where PGlite will persist DB files
 const DB_DIR = path.join(__dirname, "pglite-db");
 
-// helper to send responses
-function serveResponse(res, statusCode, contentType, payload) {
-  res.statusCode = statusCode;
-  res.setHeader("Content-Type", contentType);
-  if (contentType.includes("json")) {
-    res.end(JSON.stringify(payload));
-  } else {
-    res.end(String(payload));
-  }
-}
-
-
-
 // Initialize DB and schema
 async function initDb() {
   // ensure directory exists
@@ -36,41 +24,22 @@ async function initDb() {
   const db = await PGlite.create(DB_DIR);
 
   // create the stock table if it doesn't exist
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS stock (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      category TEXT,
-      qty INTEGER,
-      price INTEGER,
-      available BOOLEAN
-    );
-  `);
+  const sqlPath = path.join(__dirname, "create-table.sql")
+  const createTableSql = await fs.readFile(sqlPath, "utf8")
+  await db.exec(createTableSql)
 
   // seed data if empty
   const countRes = await db.query("SELECT COUNT(*)::int AS count FROM stock;");
   const count = (countRes.rows && Number(countRes.rows[0].count)) || 0;
   if (count === 0) {
-    await db.exec(`
-      INSERT INTO stock (name, category, qty, price, available) VALUES
-      ('Candles', 'Accessories', 32, 5, true),
-      ('Soap', 'Bath', 20, 4, true),
-      ('Sponge', 'Bath', 50, 3, true),
-      ('Sofa', 'House', 5, 500, false),
-      ('Table', 'House', 10, 80, true),
-      ('Tv', 'Eletronic', 20, 230, true),
-      ('Microwave', 'Eletronic', 30, 50, true),
-      ('Mirror', 'House', 10, 140, true),
-      ('Coach', 'House', 12, 300, false),
-      ('Carpet', 'House', 30, 50, true);
-    `);
+    const sqlInsertPath = path.join(__dirname, "insertStockData.sql")
+    const insertStockDataSql = await fs.readFile(sqlInsertPath, "utf8")
+    await db.exec(insertStockDataSql)
   }
-
   return db;
 }
 
 const dbPromise = initDb();
-
 
 
 const server = http.createServer(async (req, res) => {
@@ -91,8 +60,10 @@ const server = http.createServer(async (req, res) => {
   if (req.url === "/" && req.method === "GET"){
     try {
       serveResponse(res, 200,"text/plain", "server responded")
+      return
     } catch (err) {
       console.error("There was an error fetching data on / get", err)
+      return
     }
   }
   // GET / => return all stock items
